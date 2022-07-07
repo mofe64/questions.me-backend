@@ -23,7 +23,13 @@ export const register = async (
       timeStamp: Date.now(),
       user: newUser,
     });
-  } catch (e: any) {
-    console.log(e);
+  } catch (e: unknown) {
+    const error = e as Error;
+    console.log(error.message);
+    res.status(400).json({
+      success: false,
+      timeStamp: Date.now(),
+      message: error.message,
+    });
   }
 };

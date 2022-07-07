@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 const userSchema: Schema = new Schema<IUser>({
   email: {
     type: String,
-    requird: [true, "Email is a required field for user"],
+    required: [true, "Email is a required field for user"],
     unique: true,
     lowercase: true,
     validate: [validator.isEmail, "Email provided is not valid"],
