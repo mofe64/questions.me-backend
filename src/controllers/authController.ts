@@ -63,7 +63,7 @@ export const login = async (
     const token = signToken(user._id.toString());
     res.status(200).json({
       success: true,
-      timeStamp: Date.now(),
+      timeStamp: new Date(),
       token,
     });
   } catch (e: unknown) {
