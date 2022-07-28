@@ -6,13 +6,11 @@ import {
 } from "./authController.interface";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import catchAsync from "../util/catchAsync";
+import AppError from "../util/appError";
 
-export const register = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const register = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const registrationRequest: IRegistrationRequest = req.body;
 
     const newUser = await User.create({
@@ -25,57 +23,43 @@ export const register = async (
 
     res.status(201).json({
       success: true,
-      timeStamp: Date.now(),
+      timeStamp: new Date(),
       user: newUser,
     });
-  } catch (e: unknown) {
-    const error = e as Error;
-    console.log(error.message);
-    res.status(400).json({
-      success: false,
-      timeStamp: Date.now(),
-      message: error.message,
-    });
   }
-};
+);
 
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
+export const login = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
     const loginRequest: ILoginRequest = req.body;
+
     if (!loginRequest.username || !loginRequest.password) {
-      throw new Error("Username and Password must be provided");
+      return next(new AppError("Please provide email and password", 400));
     }
+
     const user = await User.findOne({ username: loginRequest.username });
+
     if (!user) {
-      throw new Error("No user found with that username");
+      return next(new AppError("No user found with that username", 400));
     }
+
     const passwordMatch = await bcrypt.compare(
       loginRequest.password,
       user.password
     );
+
     if (!passwordMatch) {
-      throw new Error("Incorrect password provided");
+      return next(new AppError("Incorrect password provided", 401));
     }
+
     const token = signToken(user._id.toString());
     res.status(200).json({
       success: true,
       timeStamp: new Date(),
       token,
     });
-  } catch (e: unknown) {
-    const error = e as Error;
-    console.log(error.message);
-    res.status(400).json({
-      success: false,
-      timeStamp: Date.now(),
-      message: error.message,
-    });
   }
-};
+);
 
 const signToken = (id: string) => {
   const jwtSecret = process.env.JWT_SECRET as string;
